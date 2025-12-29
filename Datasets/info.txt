@@ -1,0 +1,71 @@
+info.txt
+--------
+
+This project uses several CSV files from the Cinema Audience Forecasting challenge. Each file describes a different aspect of theaters, bookings, dates, and audience visits, and they are combined to build the final modeling dataset. 
+
+1) cinePOS_theaters.csv  
+- Contains theater metadata from the cinePOS system. 
+- Key columns:  
+  - cine_theater_id: Unique identifier for each cinePOS theater. 
+  - theater_type: Type/category of the theater (e.g., Drama, Other). 
+  - theater_area: Area/region label for the theater (Area_XXX). 
+  - latitude, longitude: Geographic coordinates of the theater. 
+- Used to add location and type information to theaters that appear in cinePOS booking data. 
+
+2) booknow_theaters.csv  
+- Contains theater metadata from the booknow platform. 
+- Key columns:  
+  - book_theater_id: Unique identifier for each booknow theater. 
+  - theater_type: Type/category of the theater. 
+  - theater_area: Area/region label. 
+  - latitude, longitude: Geographic coordinates. 
+- Used as the main theater reference for the target visits table (`booknow_visits`), and to enrich each theater with static properties. 
+
+3) movie_theater_id_relation.csv  
+- Mapping table between booknow and cinePOS theater IDs. 
+- Key columns:  
+  - book_theater_id: Theater ID in booknow system. 
+  - cine_theater_id: Corresponding theater ID in cinePOS system. 
+- Used to merge cinePOS booking information into the booknow theater space so that both booking sources can be aggregated per theater. 
+
+4) cinePOS_booking.csv  
+- Detailed booking logs from the cinePOS system. 
+- Key columns:  
+  - cine_theater_id: Theater identifier (links via mapping table). 
+  - show_datetime: Date and time of the show. 
+  - booking_datetime: When the booking was made. 
+  - tickets_sold: Number of tickets sold in that booking record. 
+- Used to compute aggregate features such as `cine_tickets` (total tickets sold) and `cine_count` (number of booking records) per theater and date. 
+
+5) booknow_booking.csv  
+- Detailed booking logs from the booknow platform. 
+- Key columns:  
+  - book_theater_id: Theater identifier in booknow system. 
+  - show_datetime: Date and time of the show. 
+  - booking_datetime: When the booking was made. 
+  - tickets_booked: Number of tickets booked in that record. 
+- Used to compute aggregate features such as `booknow_tickets` and `booknow_count` per `(book_theater_id, show_date)`. 
+
+6) booknow_visits.csv  
+- Core training table containing the historical audience counts. 
+- Key columns:  
+  - book_theater_id: Theater identifier. 
+  - show_date: Date of the show (no time component). 
+  - audience_count: Number of people who actually visited the theater on that date. 
+- This file defines the prediction target (`audience_count`) that all models try to forecast. 
+
+7) date_info.csv  
+- Calendar information for each date in the relevant period. 
+- Key columns:  
+  - show_date: Date. 
+  - day_of_week: Day name (e.g., Monday, Tuesday). 
+- Used to create date‑related features (like day_of_week and further derived features such as year, month, day, day_of_year, week_of_year, quarter). 
+
+8) sample_submission.csv  
+- Template file specifying the required submission format for Kaggle. 
+- Key columns:  
+  - ID: Composite identifier of `book_theater_id` and `show_date` for the test set. 
+  - audience_count: Placeholder column for predicted values. 
+- The final model predictions are written into this format to create `submission.csv` for leaderboard evaluation. 
+
+These datasets are merged and transformed in the notebook to build a single, feature‑rich table at the `(book_theater_id, show_date)` level, which is then used for model training, validation, and final prediction. 
